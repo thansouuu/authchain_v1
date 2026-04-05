@@ -10,9 +10,20 @@ const { startListener } = require('../src/utils/blockchainListener.js'); // THÊ
 const app = express();
 
 // 2. Middleware cơ bản
-app.use(cors()); 
+// CẤU HÌNH CORS MỚI: Chỉ định đích danh ai được phép vào nhà
+const corsOptions = {
+    origin: [
+        'https://authchain-v1-gqdr.vercel.app', // Link thực tế trên Vercel của bạn (Không có dấu / ở cuối)
+        'http://localhost:5173'                 // Cho phép Frontend chạy ở máy tính gọi lên
+    ],
+    credentials: true, // Bắt buộc phải có cái này nếu hệ thống có gửi cookie hoặc token
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    allowedHeaders: ['Content-Type', 'Authorization']
+};
+app.use(cors(corsOptions)); // Gắn cấu hình vừa tạo vào
+
 app.use(express.json()); 
-app.use(express.urlencoded({ extended: true })); 
+app.use(express.urlencoded({ extended: true }));
 
 // 3. Gọi kết nối Database
 connectDB();

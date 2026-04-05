@@ -1,0 +1,616 @@
+{
+  "address": "By7FiwWubLNv1xG5tAq6SzoyfanFqhTfNnvy43sQXpJc",
+  "metadata": {
+    "name": "verify_product",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "approve_product",
+      "discriminator": [
+        116,
+        155,
+        29,
+        24,
+        131,
+        90,
+        184,
+        217
+      ],
+      "accounts": [
+        {
+          "name": "brand",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "product",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "buy_product",
+      "discriminator": [
+        234,
+        192,
+        237,
+        192,
+        174,
+        7,
+        53,
+        136
+      ],
+      "accounts": [
+        {
+          "name": "buyer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "product",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "finish_product",
+      "discriminator": [
+        162,
+        201,
+        18,
+        30,
+        64,
+        9,
+        6,
+        15
+      ],
+      "accounts": [
+        {
+          "name": "current_authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "product"
+          ]
+        },
+        {
+          "name": "nsx_pubkey",
+          "writable": true,
+          "relations": [
+            "product"
+          ]
+        },
+        {
+          "name": "brand_pubkey",
+          "writable": true
+        },
+        {
+          "name": "product",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "init_product",
+      "discriminator": [
+        170,
+        237,
+        92,
+        232,
+        240,
+        86,
+        89,
+        222
+      ],
+      "accounts": [
+        {
+          "name": "nsx",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "product",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  80,
+                  82,
+                  79,
+                  68,
+                  85,
+                  67,
+                  84,
+                  95,
+                  83,
+                  69,
+                  69,
+                  68
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "nsx"
+              },
+              {
+                "kind": "arg",
+                "path": "product_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "brand"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "product_id",
+          "type": "string"
+        },
+        {
+          "name": "price",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "report_error",
+      "discriminator": [
+        88,
+        133,
+        96,
+        124,
+        196,
+        105,
+        77,
+        152
+      ],
+      "accounts": [
+        {
+          "name": "current_authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "product"
+          ]
+        },
+        {
+          "name": "product",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "reason",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "resolve_timeout",
+      "discriminator": [
+        149,
+        55,
+        89,
+        144,
+        121,
+        143,
+        48,
+        210
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "product",
+          "writable": true
+        },
+        {
+          "name": "buyer_pubkey",
+          "writable": true
+        },
+        {
+          "name": "nsx_pubkey",
+          "writable": true
+        },
+        {
+          "name": "brand_pubkey",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "transfer_product",
+      "discriminator": [
+        119,
+        27,
+        86,
+        205,
+        209,
+        123,
+        162,
+        244
+      ],
+      "accounts": [
+        {
+          "name": "current_authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "product"
+          ]
+        },
+        {
+          "name": "product",
+          "writable": true
+        },
+        {
+          "name": "new_authority"
+        },
+        {
+          "name": "instruction_sysvar_account",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "new_location",
+          "type": "string"
+        },
+        {
+          "name": "timestamp",
+          "type": "i64"
+        },
+        {
+          "name": "signature",
+          "type": {
+            "array": [
+              "u8",
+              64
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "verify_report",
+      "discriminator": [
+        166,
+        246,
+        169,
+        128,
+        139,
+        37,
+        201,
+        223
+      ],
+      "accounts": [
+        {
+          "name": "brand_pubkey",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "product"
+          ]
+        },
+        {
+          "name": "product",
+          "writable": true
+        },
+        {
+          "name": "buyer_pubkey",
+          "writable": true
+        },
+        {
+          "name": "nsx_pubkey",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "nsx_at_fault",
+          "type": "bool"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Product",
+      "discriminator": [
+        102,
+        76,
+        55,
+        251,
+        38,
+        73,
+        224,
+        229
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "PackageTransferredEvent",
+      "discriminator": [
+        172,
+        48,
+        128,
+        101,
+        89,
+        159,
+        190,
+        64
+      ]
+    },
+    {
+      "name": "ProductBoughtEvent",
+      "discriminator": [
+        73,
+        170,
+        251,
+        179,
+        176,
+        253,
+        142,
+        46
+      ]
+    },
+    {
+      "name": "ProductStatusEvent",
+      "discriminator": [
+        106,
+        72,
+        13,
+        34,
+        45,
+        152,
+        46,
+        230
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "MathOverflow",
+      "msg": "Lỗi tính toán: Tràn số (Overflow/Underflow)"
+    },
+    {
+      "code": 6001,
+      "name": "ProductLocked",
+      "msg": "Sản phẩm đã bị khóa do có lỗi xảy ra, không thể thực hiện hành động này!"
+    },
+    {
+      "code": 6002,
+      "name": "NotCurrentAuthority",
+      "msg": "Bạn không phải là người đang giữ kiện hàng này!"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidBuyerAddress",
+      "msg": "Địa chỉ ví hoàn tiền không khớp với địa chỉ ví mua ban đầu!"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidNsxAddress",
+      "msg": "Địa chỉ ví không hợp lệ!"
+    },
+    {
+      "code": 6005,
+      "name": "UnauthorizedBrand",
+      "msg": "Bạn không có vai trò Brand để phán xử đơn hàng này!"
+    },
+    {
+      "code": 6006,
+      "name": "NotEnoughMoney",
+      "msg": "Số dư không đủ để thực hiện thao tác này!"
+    },
+    {
+      "code": 6007,
+      "name": "AlreadyApproved",
+      "msg": "Sản phẩm này đã được brand phê duyệt trước đó rồi!"
+    },
+    {
+      "code": 6008,
+      "name": "NotApprovedByBrand",
+      "msg": "Sản phẩm chưa được Brand phê duyệt, không thể mua hoặc vận chuyển!"
+    },
+    {
+      "code": 6009,
+      "name": "NoErrorToVerify",
+      "msg": "Sản phẩm bình thường và không có lỗi để xác minh!"
+    },
+    {
+      "code": 6010,
+      "name": "NotYetTimeout",
+      "msg": "Chưa đến thời hạn Timeout, không thể gọi hàm này!"
+    },
+    {
+      "code": 6011,
+      "name": "SelfPurchaseNotAllowed",
+      "msg": "Nhà sản xuất và  brand không được mua lại đồ của mình!"
+    },
+    {
+      "code": 6012,
+      "name": "CustodianCannotBuy",
+      "msg": "Người vận chuyển hiện tại không thể mua đồ do mình vận chuyển!"
+    },
+    {
+      "code": 6013,
+      "name": "QrCodeExpired",
+      "msg": "Mã qr đã hết hiệu lực!"
+    },
+    {
+      "code": 6014,
+      "name": "SignatureVerificationFailed",
+      "msg": "Chữ ký không chính xác!"
+    }
+  ],
+  "types": [
+    {
+      "name": "PackageTransferredEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "product_id",
+            "type": "string"
+          },
+          {
+            "name": "from_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "to_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "location",
+            "type": "string"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Product",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "product_id",
+            "type": "string"
+          },
+          {
+            "name": "current_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "brand_pubkey",
+            "type": "pubkey"
+          },
+          {
+            "name": "nsx_pubkey",
+            "type": "pubkey"
+          },
+          {
+            "name": "buyer_pubkey",
+            "type": "pubkey"
+          },
+          {
+            "name": "price",
+            "type": "u64"
+          },
+          {
+            "name": "current_funding",
+            "type": "u64"
+          },
+          {
+            "name": "brand_stake",
+            "type": "u64"
+          },
+          {
+            "name": "is_approved",
+            "type": "bool"
+          },
+          {
+            "name": "is_resolved",
+            "type": "bool"
+          },
+          {
+            "name": "has_error",
+            "type": "bool"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProductBoughtEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "product_id",
+            "type": "string"
+          },
+          {
+            "name": "buyer",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "message",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProductStatusEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "product_id",
+            "type": "string"
+          },
+          {
+            "name": "is_finished",
+            "type": "bool"
+          },
+          {
+            "name": "has_error",
+            "type": "bool"
+          },
+          {
+            "name": "reason",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  ],
+  "constants": [
+    {
+      "name": "PRODUCT_SEED",
+      "type": "bytes",
+      "value": "[80, 82, 79, 68, 85, 67, 84, 95, 83, 69, 69, 68]"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+# --- Các cài đặt cũ của bạn ---
+.anchor
+.DS_Store
+target
+**/*.rs.bk
+node_modules/
+test-ledger
+.yarn
+
+# --- BỔ SUNG QUAN TRỌNG CHO MONOREPO ---
+# 1. Chặn tất cả node_modules ở các thư mục con (chắc cú 100%)
+backend/node_modules/
+frontend/node_modules/
+
+# 2. BẢO MẬT: Tuyệt đối không push file chứa Private Key và API Key lên mạng
+.env
+backend/.env
+frontend/.env
+*.keypair.json
+id.json
+
+# 3. Chặn thư mục build của React (Netlify sẽ tự động build lại, không cần push lên)
+frontend/dist/
+frontend/build/

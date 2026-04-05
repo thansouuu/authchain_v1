@@ -29,7 +29,7 @@ const DriverPortal = () => {
             try {
                 setLoading(true);
                 const response = await axios.get(
-                    `http://localhost:5000/api/products?currentCustodian=${publicKey.toBase58()}`
+                    `https://authchain-v1.onrender.com/api/products?currentCustodian=${publicKey.toBase58()}`
                 );
                 setDelivery(response.data.data);
             } catch (error) {

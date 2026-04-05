@@ -17,7 +17,7 @@ export default function AdminPortalPage() {
             if (!publicKey) return;
             try {
                 setLoading(true);
-                const res = await axios.get('http://localhost:5000/api/users/role-requests');
+                const res = await axios.get('https://authchain-v1.onrender.com/api/users/role-requests');
                 if (res.data && res.data.data) {
                     setPendingRequests(res.data.data);
                 }
@@ -35,7 +35,7 @@ export default function AdminPortalPage() {
 
         try {
             setProcessingId(walletAddress);
-            const res = await axios.patch(`http://localhost:5000/api/users/${walletAddress}/process-request`, {
+            const res = await axios.patch(`https://authchain-v1.onrender.com/api/users/${walletAddress}/process-request`, {
                 action: action
             });
 

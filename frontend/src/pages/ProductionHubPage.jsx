@@ -159,7 +159,7 @@ export default function ProductionHubPage() {
 
       try {
         // Gọi API với query productId bạn đã setup ở backend
-        const checkRes = await axios.get(`http://localhost:5000/api/products?productId=${generatedProductId}`);
+        const checkRes = await axios.get(`https://authchain-v1.onrender.com/api/products?productId=${generatedProductId}`);
         if (checkRes.data.data && checkRes.data.data.length > 0) {
             alert(`Lỗi: Mã sản phẩm ${generatedProductId} đã tồn tại trong hệ thống! Vui lòng thử lại để tạo mã mới.`);
             setIsMinting(false); // Tắt hiệu ứng loading
@@ -225,7 +225,7 @@ export default function ProductionHubPage() {
         productImages.forEach(file => formData.append('images', file));
 
         const res = await axios.post(
-            'http://localhost:5000/api/products/', 
+            'https://authchain-v1.onrender.com/api/products/', 
             formData,
             { 
                 headers: { 
@@ -269,7 +269,7 @@ export default function ProductionHubPage() {
       try {
         const walletStr = publicKey.toBase58();
         // Bắt buộc phải có chữ 'const' ở đây
-        const res = await axios.get(`http://localhost:5000/api/products?manufacturerWallet=${walletStr}`);
+        const res = await axios.get(`https://authchain-v1.onrender.com/api/products?manufacturerWallet=${walletStr}`);
         
         setMyBatches(res.data.data);
       } catch (err) {

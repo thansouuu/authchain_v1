@@ -95,7 +95,7 @@ export default function HomePage() {
       setLoading(true);
       try {
         // Gọi API và truyền thẳng status vào query (approved hoặc pending)
-        const res = await axios.get(`http://localhost:5000/api/products?status=${activeTab}`);
+        const res = await axios.get(`https://authchain-v1.onrender.com/api/products?status=${activeTab}`);
         setProducts(res.data.data);
       } catch (err) {
         console.error("Lỗi lấy danh sách Marketplace:", err);
@@ -111,7 +111,7 @@ export default function HomePage() {
   useEffect(()=>{
     const fetchUser=async()=>{
       if (!publicKey) return;
-      const res = await axios.post('http://localhost:5000/api/users/auth', { 
+      const res = await axios.post('https://authchain-v1.onrender.com/api/users/auth', { 
         walletAddress: publicKey.toBase58() 
       });
       if (!res.data.data) {

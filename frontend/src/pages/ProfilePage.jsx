@@ -34,7 +34,7 @@ export default function ProfilePage() {
 
   const fetchUserInfo = async () => {
     try {
-      const res = await axios.post('http://localhost:5000/api/users/auth', { 
+      const res = await axios.post('https://authchain-v1.onrender.com/api/users/auth', { 
         walletAddress: publicKey.toBase58() 
       });
       const userData = res.data.data;
@@ -70,7 +70,7 @@ export default function ProfilePage() {
             
             // --- SỬA Ở ĐÂY: Đảo walletAddress ra trước theo đúng router.post của bạn ---
             const res = await axios.post(
-              `http://localhost:5000/api/users/${walletAddress}/request-role`, 
+              `https://authchain-v1.onrender.com/api/users/${walletAddress}/request-role`, 
               formData,
               { headers: { 'Content-Type': 'multipart/form-data' } }
             );

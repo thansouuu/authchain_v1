@@ -51,7 +51,7 @@ export default function MainLayout() {
     const authenticateWallet = async () => {
       try {
         // Đảm bảo URL này khớp với Route bạn đã viết bên Node.js
-        const apiUrl = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:5000/api';
+        const apiUrl = import.meta.env.VITE_BACKEND_API_URL || 'https://authchain-v1.onrender.com/api';
         
         const response = await axios.post(`${apiUrl}/users/auth`, {
             walletAddress: walletAddress

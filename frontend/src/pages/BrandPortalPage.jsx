@@ -26,7 +26,7 @@ const BrandPortalPage = () => {
       setLoading(true);
       try {
         const walletStr = publicKey.toBase58();
-        const res = await axios.get(`http://localhost:5000/api/products?brandWallet=${walletStr}&status=pending`);
+        const res = await axios.get(`https://authchain-v1.onrender.com/api/products?brandWallet=${walletStr}&status=pending`);
         
         if (res.data && res.data.data) {
           setPendingProducts(res.data.data);
@@ -48,7 +48,7 @@ const BrandPortalPage = () => {
         try {
             setLoading(true);
             const response = await axios.get(
-                `http://localhost:5000/api/products?status=disputed&brandWallet=${publicKey.toBase58()}`
+                `https://authchain-v1.onrender.com/api/products?status=disputed&brandWallet=${publicKey.toBase58()}`
             );
             
             if (response.data && response.data.data) {
@@ -70,7 +70,7 @@ const BrandPortalPage = () => {
 
       try {
         const response = await axios.get(
-          `http://localhost:5000/api/products?status=in-transit&brandWallet=${publicKey.toBase58()}`
+          `https://authchain-v1.onrender.com/api/products?status=in-transit&brandWallet=${publicKey.toBase58()}`
         );
         
         if (response.data && response.data.data) {

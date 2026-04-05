@@ -41,7 +41,7 @@ export default function ClientPortalPage() {
     if (!publicKey) return; 
 
     try {
-      const response = await axios.get(`http://localhost:5000/api/products?owner=${publicKey.toBase58()}`);
+      const response = await axios.get(`https://authchain-v1.onrender.com/api/products?owner=${publicKey.toBase58()}`);
       setOrders(response.data.data);
     } catch (error) {
       console.error("❌ Lỗi lấy danh sách đơn hàng:", error);

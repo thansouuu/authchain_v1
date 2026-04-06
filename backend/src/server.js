@@ -20,7 +20,10 @@ const corsOptions = {
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     allowedHeaders: ['Content-Type', 'Authorization']
 };
-app.use(cors(corsOptions)); // Gắn cấu hình vừa tạo vào
+app.use(cors({
+    origin: '*', 
+    credentials: true
+}));
 
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true }));

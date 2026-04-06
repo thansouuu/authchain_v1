@@ -7,7 +7,7 @@ import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import axios from 'axios';
 
 export default function MainLayout() {
-  const { publicKey, disconnect } = useWallet();
+  const { publicKey, disconnect, connecting } = useWallet();
   const { connection } = useConnection();
   const location = useLocation();
   const navigate = useNavigate();
@@ -19,12 +19,14 @@ export default function MainLayout() {
   // Xử lý logic Role và RAM
   useEffect(() => {
     // 1. Kịch bản: Rút ví hoặc chưa kết nối
+    if (connecting) return;
     if (!publicKey) {
       setBalanceSol(null);
       setUserRole(null);
       setIsDropdownOpen(false);
       
       if (location.pathname !== '/') {
+        console.log("Không tìm thấy ví sau khi load, điều hướng về trang chủ...");
         navigate('/');
       }
       return;

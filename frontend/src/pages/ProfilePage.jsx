@@ -76,7 +76,9 @@ export default function ProfilePage() {
             );
             
             alert(res.data.message);
-            fetchUserInfo(); 
+            setBusinessName(""); 
+            setFiles([]);
+            await fetchUserInfo(); 
         } catch (err) {
             console.error(err);
             alert("Gửi yêu cầu thất bại! Kiểm tra lại Console nhé.");

@@ -11,22 +11,26 @@ export default function MainLayout() {
   const { connection } = useConnection();
   const location = useLocation();
   const navigate = useNavigate();
-
+  const [isReady, setIsReady] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [balanceSol, setBalanceSol] = useState(null);
   const [userRole, setUserRole] = useState(null);
-
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsReady(true);
+    }, 500); // 500ms là đủ để Phantom "thức dậy"
+    return () => clearTimeout(timer);
+  }, []);
   // Xử lý logic Role và RAM
   useEffect(() => {
-    // 1. Kịch bản: Rút ví hoặc chưa kết nối
-    if (connecting) return;
+    if (connecting || !isReady) return;
     if (!publicKey) {
       setBalanceSol(null);
       setUserRole(null);
       setIsDropdownOpen(false);
       
       if (location.pathname !== '/') {
-        console.log("Không tìm thấy ví sau khi load, điều hướng về trang chủ...");
+        console.log("Quyết định cuối cùng: Không có ví, về trang chủ thôi!");
         navigate('/');
       }
       return;
@@ -77,7 +81,7 @@ export default function MainLayout() {
     fetchRealBalance();
     authenticateWallet();
 
-  }, [publicKey, connection, location.pathname, navigate]);
+  }, [publicKey, connecting, isReady, connection, location.pathname, navigate]);
 
   // Xử lý chuỗi ví hiển thị
   const base58 = useMemo(() => publicKey?.toBase58(), [publicKey]);

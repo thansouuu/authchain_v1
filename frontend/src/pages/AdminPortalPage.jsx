@@ -6,15 +6,18 @@ import { ShieldAlert, CheckCircle, XCircle, UserCog } from 'lucide-react';
 const ADMIN_WALLET = "GH85GXm9GTopqbAwTXyhuQgQzE2pS2JAwsyaqydfRfhn"; // 👉 Hardcode ví admin tạm thời
 
 export default function AdminPortalPage() {
-    const { publicKey } = useWallet();
+    const { publicKey, connected } = useWallet(); // 👉 Thêm 'connected' để biết ví đã sẵn sàng chưa
     const [pendingRequests, setPendingRequests] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [processingId, setProcessingId] = useState(null); // Quản lý trạng thái nút đang xoay
+    const [processingId, setProcessingId] = useState(null);
 
-    // Fetch danh sách pending
+    // 1. Logic kiểm tra quyền (SỬA Ở ĐÂY)
+    const isAdmin = publicKey?.toBase58() === ADMIN_WALLET;
+
+    // Fetch danh sách
     useEffect(() => {
         const fetchRequests = async () => {
-            if (!publicKey) return;
+            if (!isAdmin) return; // Chỉ gọi API nếu đúng là Admin
             try {
                 setLoading(true);
                 const res = await axios.get('https://authchain-v1.onrender.com/api/users/role-requests');
@@ -28,40 +31,27 @@ export default function AdminPortalPage() {
             }
         };
         fetchRequests();
-    }, [publicKey]);
+    }, [publicKey, isAdmin]);
 
-    const handleProcessRequest = async (walletAddress, action) => {
-        if (!window.confirm(`Bạn chắc chắn muốn ${action === 'approve' ? 'DUYỆT' : 'TỪ CHỐI'} đơn này?`)) return;
+    // 2. Xử lý hiển thị UI theo trạng thái kết nối (SỬA Ở ĐÂY)
+    
+    // Nếu chưa kết nối ví -> Yêu cầu kết nối
+    if (!connected) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center">
+                <UserCog className="w-16 h-16 text-blue-500 mb-4 animate-bounce" />
+                <h1 className="text-xl font-bold">Vui lòng kết nối ví Admin</h1>
+            </div>
+        );
+    }
 
-        try {
-            setProcessingId(walletAddress);
-            const res = await axios.patch(`https://authchain-v1.onrender.com/api/users/${walletAddress}/process-request`, {
-                action: action
-            });
-
-            alert(`✅ ${res.data.message}`);
-            // Xóa khỏi danh sách UI
-            setPendingRequests(prev => prev.filter(r => r.walletAddress !== walletAddress));
-
-        } catch (error) {
-            // 👉 HỨNG LỖI TỪ BACKEND NẾU USER CHƯA HOÀN THÀNH TRÁCH NHIỆM
-            if (error.response && error.response.status === 400) {
-                alert(`❌ TỪ CHỐI DUYỆT:\n${error.response.data.message}`);
-            } else {
-                alert("Lỗi hệ thống: Không thể xử lý yêu cầu.");
-            }
-        } finally {
-            setProcessingId(null);
-        }
-    };
-
-    // Bảo mật sơ bộ trên UI
-    if (publicKey?.toBase58() !== ADMIN_WALLET && process.env.NODE_ENV === 'production') {
+    // Nếu đã kết nối nhưng SAI ví Admin
+    if (!isAdmin) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
                 <ShieldAlert className="w-20 h-20 text-red-500 mb-4" />
                 <h1 className="text-2xl font-bold text-gray-900">Truy cập bị từ chối</h1>
-                <p className="text-gray-500">Chỉ Admin hệ thống mới có quyền vào trang này.</p>
+                <p className="text-gray-500">Ví {publicKey?.toBase58().slice(0,6)}... không có quyền Admin.</p>
             </div>
         );
     }

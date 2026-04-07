@@ -255,7 +255,7 @@ export default function ClientPortalPage() {
   return (
     <div className="max-w-4xl mx-auto py-12 px-6">
       <div className="mb-10">
-        <ReceiveParcelCard />
+        <ReceiveParcelCard myOrders={orders} />
       </div>
       {/* --- HEADER --- */}
       <div className="mb-10">
@@ -265,9 +265,6 @@ export default function ClientPortalPage() {
         </h1>
         <p className="text-gray-500 text-base ml-14">Track and manage your authenticated physical assets.</p>
       </div>
-
-      {/* 👉 CHÈN COMPONENT NHẬN HÀNG LÊN ĐẦU TRANG */}
-      
 
       {/* --- DANH SÁCH ĐƠN HÀNG --- */}
       <div className="space-y-6">

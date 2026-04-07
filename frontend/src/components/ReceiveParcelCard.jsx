@@ -2,18 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useReceiveQR } from '../hooks/useReceiveQR';
 
-export default function ReceiveParcelCard() {
+// 👉 THÊM PROP myOrders (Danh sách đơn hàng của Client truyền từ Component cha xuống)
+export default function ReceiveParcelCard({ myOrders = [] }) {
     const [pickupProductId, setPickupProductId] = useState('');
     const { qrData, isGenerating, generateQR, resetQR } = useReceiveQR();
     
-    // 👉 STATE MỚI: Quản lý thời gian đếm ngược
+    // Quản lý thời gian đếm ngược
     const [timeLeft, setTimeLeft] = useState(60);
 
-    // 👉 EFFECT MỚI: Chạy đồng hồ khi có qrData
+    // Effect chạy đồng hồ khi có qrData
     useEffect(() => {
         if (!qrData) return;
 
-        // Reset lại 60s mỗi khi qrData thay đổi (vừa tạo mới hoặc bấm refresh)
         setTimeLeft(60);
 
         const timer = setInterval(() => {
@@ -26,7 +26,6 @@ export default function ReceiveParcelCard() {
             });
         }, 1000);
 
-        // Dọn dẹp interval khi component unmount hoặc qrData đổi
         return () => clearInterval(timer);
     }, [qrData]);
 
@@ -35,7 +34,20 @@ export default function ReceiveParcelCard() {
             alert("Vui lòng nhập mã Product ID!");
             return;
         }
-        generateQR(pickupProductId);
+
+        const inputId = pickupProductId.trim();
+
+        // 👉 BƯỚC KIỂM TRA BẢO MẬT: Kiểm tra xem user có phải là owner không
+        if (myOrders && myOrders.length > 0) {
+            const isOwner = myOrders.some(product => product.productId === inputId);
+            if (!isOwner) {
+                alert(`❌ Từ chối: Kiện hàng ${inputId} không thuộc quyền quản lý của bạn!`);
+                return;
+            }
+        }
+
+        // Vượt qua kiểm tra thì mới gọi hàm tạo QR
+        generateQR(inputId);
     };
 
     const handleReset = () => {
@@ -66,7 +78,7 @@ export default function ReceiveParcelCard() {
                         <button 
                             onClick={handleGenerate}
                             disabled={isGenerating}
-                            className="bg-indigo-600 text-white px-6 py-4 rounded-xl font-bold hover:bg-indigo-700 transition-colors whitespace-nowrap"
+                            className="bg-indigo-600 text-white px-6 py-4 rounded-xl font-bold hover:bg-indigo-700 transition-colors whitespace-nowrap disabled:opacity-50"
                         >
                             {isGenerating ? "⌛ Đang ký..." : "🔑 Tạo QR"}
                         </button>
@@ -80,7 +92,6 @@ export default function ReceiveParcelCard() {
                             {JSON.parse(qrData).productId}
                         </p>
                         
-                        {/* 👉 CẢNH BÁO THỜI GIAN ĐẶT DƯỚI PRODUCT ID */}
                         <div className="mt-3">
                             {timeLeft > 0 ? (
                                 <span className={`text-xs font-bold px-3 py-1 rounded-full flex items-center justify-center gap-1.5 ${
@@ -96,11 +107,9 @@ export default function ReceiveParcelCard() {
                         </div>
                     </div>
 
-                    {/* 👉 HIỆU ỨNG LÀM MỜ QR KHI HẾT HẠN */}
                     <div className={`bg-white p-4 rounded-2xl shadow-sm relative transition-opacity duration-300 ${timeLeft === 0 ? 'opacity-30 grayscale' : 'opacity-100'}`}>
                         <QRCodeSVG value={qrData} size={180} />
                         
-                        {/* Chữ IN ĐẬM đè lên QR khi hết hạn */}
                         {timeLeft === 0 && (
                             <div className="absolute inset-0 flex items-center justify-center">
                                 <span className="bg-red-500 text-white font-black text-sm px-3 py-1 rounded-lg transform -rotate-12">
@@ -116,7 +125,6 @@ export default function ReceiveParcelCard() {
                         <button 
                             onClick={handleGenerate}
                             disabled={isGenerating}
-                            // Nếu hết hạn thì làm nút Làm Mới nhấp nháy để nhắc user
                             className={`text-sm font-bold transition-colors flex items-center gap-1.5 ${
                                 timeLeft === 0 ? 'text-blue-600 animate-bounce' : 'text-indigo-600 hover:text-indigo-800'
                             }`}

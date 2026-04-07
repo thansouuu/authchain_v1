@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-// Thêm 2 thư viện này
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import axios from 'axios';
 
@@ -11,75 +10,126 @@ export default function MainLayout() {
   const { connection } = useConnection();
   const location = useLocation();
   const navigate = useNavigate();
+  
   const [isReady, setIsReady] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [balanceSol, setBalanceSol] = useState(null);
   const [userRole, setUserRole] = useState(null);
+  
+  const prevPublicKey = useRef(publicKey?.toBase58());
+
+  // 1. Theo dõi trạng thái ví: Bắt sự kiện đổi ví / ngắt kết nối
+  useEffect(() => {
+    const currentKey = publicKey?.toBase58();
+
+    if (prevPublicKey.current && currentKey && prevPublicKey.current !== currentKey) {
+      console.log("🚨 Đổi ví! Chuyển về trang chủ và Reload...");
+      navigate('/');
+      window.location.reload(); // Ép F5 bằng code luôn cho mượt
+      return; 
+    }
+
+    if (currentKey) {
+      prevPublicKey.current = currentKey;
+    }
+  }, [publicKey, navigate]);
+
+  // 👉 BẢO VỆ ROUTE CHIẾN LƯỢC: KICK RA NGOÀI NẾU SAI QUYỀN HOẶC F5 BẰNG VÍ KHÁC
+  useEffect(() => {
+    // Đợi có role rồi mới kiểm tra
+    if (!userRole) return; 
+
+    const path = location.pathname;
+    
+    // Nếu đang đứng ở trang Manufacturer mà role không phải manufacturer -> Cút về trang chủ
+    if (path.startsWith('/manufacturer') && userRole !== 'manufacturer') {
+      navigate('/');
+    } 
+    // Tương tự cho Brand
+    else if (path.startsWith('/brand') && userRole !== 'brand') {
+      navigate('/');
+    } 
+    // Tương tự cho Driver
+    else if (path.startsWith('/driver') && userRole !== 'driver') {
+      navigate('/');
+    }
+  }, [userRole, location.pathname, navigate]);
+
+
+  // 2. Khoảng nghỉ (Grace Period) đợi Phantom sẵn sàng
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsReady(true);
-    }, 500); // 500ms là đủ để Phantom "thức dậy"
+    }, 500);
     return () => clearTimeout(timer);
   }, []);
-  // Xử lý logic Role và RAM
+
+  // 3. Logic chính: Xử lý Routing, Lấy số dư Real-time và Xác thực Role
   useEffect(() => {
     if (connecting || !isReady) return;
+    
+    // Kịch bản A: Chưa kết nối ví
     if (!publicKey) {
       setBalanceSol(null);
       setUserRole(null);
       setIsDropdownOpen(false);
       
       if (location.pathname !== '/') {
-        console.log("Quyết định cuối cùng: Không có ví, về trang chủ thôi!");
+        console.log("Không có ví, điều hướng về trang chủ...");
         navigate('/');
       }
       return;
     }
 
-    // 2. Kịch bản: Ví đã kết nối
+    // Kịch bản B: Ví đã kết nối
     const walletAddress = publicKey.toBase58();
 
-    // Tác vụ A: Lấy số dư thật từ mạng lưới Solana (Devnet)
-    const fetchRealBalance = async () => {
-      try {
-        // Gọi RPC xin dữ liệu số dư (tính bằng lamports)
-        const lamports = await connection.getBalance(publicKey);
-        // Quy đổi ra SOL và làm tròn 4 chữ số thập phân cho đẹp giao diện
-        const sol = lamports / LAMPORTS_PER_SOL;
-        setBalanceSol(sol.toFixed(4));
-      } catch (error) {
+    // --- Tác vụ 1: Lấy số dư và Lắng nghe biến động (Real-time) ---
+    // Lấy số dư lần đầu tiên
+    connection.getBalance(publicKey)
+      .then((lamports) => {
+        setBalanceSol((lamports / LAMPORTS_PER_SOL).toFixed(4));
+      })
+      .catch((error) => {
         console.error("Lỗi khi đọc số dư từ blockchain:", error);
-        setBalanceSol('0.00');
-      }
-    };
+        setBalanceSol('0.0000');
+      });
 
-    // Tác vụ B: Gửi ví xuống Backend để kiểm tra Database
+    // Bật "Máy nghe lén" theo dõi số dư ví nhảy liên tục
+    const subscriptionId = connection.onAccountChange(
+      publicKey,
+      (updatedAccountInfo) => {
+        console.log("Cập nhật số dư Real-time!");
+        setBalanceSol((updatedAccountInfo.lamports / LAMPORTS_PER_SOL).toFixed(4));
+      },
+      'confirmed'
+    );
+
+    // --- Tác vụ 2: Lấy Role từ Backend ---
     const authenticateWallet = async () => {
       try {
-        // Đảm bảo URL này khớp với Route bạn đã viết bên Node.js
         const apiUrl = import.meta.env.VITE_BACKEND_API_URL || 'https://authchain-v1.onrender.com/api';
-        
         const response = await axios.post(`${apiUrl}/users/auth`, {
             walletAddress: walletAddress
         });
 
-        // Backend trả về thông tin user, ta trích xuất role để phân quyền Header
         if (response.data && response.data.data.currentRole) {
           setUserRole(response.data.data.currentRole);
         } else {
-          // Nếu ví mới tinh chưa có trên DB, mặc định gán quyền client
           setUserRole('client'); 
         }
       } catch (error) {
         console.error("Lỗi kết nối Backend:", error);
-        // Fallback an toàn nếu backend chết
         setUserRole('client');
       }
     };
 
-    // Kích hoạt chạy song song 2 luồng dữ liệu
-    fetchRealBalance();
     authenticateWallet();
+
+    // Dọn dẹp máy nghe lén khi component unmount hoặc đổi ví
+    return () => {
+      connection.removeAccountChangeListener(subscriptionId);
+    };
 
   }, [publicKey, connecting, isReady, connection, location.pathname, navigate]);
 
@@ -164,10 +214,8 @@ export default function MainLayout() {
 
         <div className="relative" ref={dropdownRef}>
           {!publicKey ? (
-            // Dùng nút chuẩn của thư viện, KHÔNG override class Tailwind để tránh liệt nút
             <WalletMultiButton />
           ) : (
-            // Custom UI Dropdown khi đã connect
             <button 
               onClick={() => setIsDropdownOpen(!isDropdownOpen)} 
               className="bg-white border border-gray-200 text-gray-900 pl-3 pr-5 py-2 rounded-2xl font-semibold flex items-center gap-3 hover:bg-gray-50 transition-colors"
@@ -185,11 +233,9 @@ export default function MainLayout() {
 
             {isDropdownOpen && publicKey && (
                 <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg p-2 z-50">
-                    
-                    {/* BIẾN NÚT NÀY THÀNH THẺ LINK */}
                     <Link 
                         to="/profile" 
-                        onClick={() => setIsDropdownOpen(false)} // Bấm xong phải đóng menu lại cho chuyên nghiệp
+                        onClick={() => setIsDropdownOpen(false)} 
                         className="flex items-center w-full text-left p-2 text-gray-700 font-semibold hover:bg-gray-100 rounded-lg mb-1 transition-colors"
                         >
                         <span className="mr-2">👤</span> View Profile
@@ -201,7 +247,6 @@ export default function MainLayout() {
                         >
                         <span className="mr-2">🚪</span> Sign Out
                     </button>
-
                 </div>
             )}
         </div>

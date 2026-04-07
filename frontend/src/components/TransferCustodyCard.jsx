@@ -5,7 +5,6 @@ import { PublicKey, SystemProgram } from '@solana/web3.js';
 import * as anchor from '@coral-xyz/anchor';
 import { Ed25519Program, Transaction, SYSVAR_INSTRUCTIONS_PUBKEY } from '@solana/web3.js';
 import bs58 from 'bs58';
-import { Scanner } from '@yudiel/react-qr-scanner';
 import { getProvider, getProgram, PROGRAM_ID } from '../utils/anchorSetup';
 import { useLocation } from '../hooks/useLocation';
 import HandoffScanner from './HandoffScanner';
@@ -20,6 +19,13 @@ export default function TransferCustodyCard({ inventory, onTransferSuccess }) {
     const [qrMetadata, setQrMetadata] = useState(null);
     const [nextCustodianAddress, setNextCustodianAddress] = useState('');
     const [loading, setLoading] = useState(false);
+
+    // Hàm dọn dẹp state dùng chung khi quét thất bại hoặc hủy bỏ
+    const handleResetScanState = () => {
+        setIsScanning(false);
+        setQrMetadata(null);
+        setNextCustodianAddress('');
+    };
 
     const handleExecuteTransfer = async () => {
         if (!qrMetadata || !publicKey || !currentLocation) {
@@ -36,12 +42,14 @@ export default function TransferCustodyCard({ inventory, onTransferSuccess }) {
             
             if (!productToTransfer) {
                 alert(`❌ Lỗi: Kiện hàng ${productId} không nằm trong quản lý của bạn hoặc mã QR không hợp lệ!`);
+                handleResetScanState(); // Quét sai mã cũng tự reset luôn
                 return;
             }
 
             // 👉 THÊM CHỐT CHẶN: Chỉ cho giao nếu trạng thái không phải là đã giao
             if (productToTransfer.status === 'delivered') {
                  alert(`❌ Lỗi: Kiện hàng ${productId} đã được bàn giao thành công trước đó.`);
+                 handleResetScanState();
                  return;
             }
 
@@ -92,10 +100,8 @@ export default function TransferCustodyCard({ inventory, onTransferSuccess }) {
                 onTransferSuccess(productId);
             }
             
-            // Reset states
-            setIsScanning(false);
-            setQrMetadata(null);
-            setNextCustodianAddress('');
+            // Reset states sau khi giao thành công
+            handleResetScanState();
 
         } catch (error) {
             console.error("❌ Lỗi Blockchain:", error);
@@ -131,7 +137,6 @@ export default function TransferCustodyCard({ inventory, onTransferSuccess }) {
                         <span>📷</span> Mở Camera Quét QR
                     </button>
 
-                    {/* 👉 CHỈ CẦN GỌI ĐÚNG NHƯ VẦY: */}
                     {isScanning && (
                         <HandoffScanner 
                             onScanSuccess={(parsedData) => {
@@ -139,7 +144,14 @@ export default function TransferCustodyCard({ inventory, onTransferSuccess }) {
                                 setNextCustodianAddress(parsedData.receiverWallet);
                                 setIsScanning(false);
                             }}
-                            onCancel={() => setIsScanning(false)}
+                            // Xử lý khi user bấm Hủy / Tắt Camera
+                            onCancel={handleResetScanState}
+                            // Xử lý khi thư viện quét bị lỗi (không decode được, mất quyền camera...)
+                            onError={(error) => {
+                                console.error("Lỗi quét QR:", error);
+                                alert("Không thể quét mã QR. Vui lòng thử lại!");
+                                handleResetScanState();
+                            }}
                         />
                     )}
                 </div>
@@ -167,7 +179,7 @@ export default function TransferCustodyCard({ inventory, onTransferSuccess }) {
 
                     <div className="flex gap-2 pt-2">
                         <button
-                            onClick={() => { setQrMetadata(null); setNextCustodianAddress(''); }}
+                            onClick={handleResetScanState}
                             className="flex-1 bg-gray-100 text-gray-600 py-4 rounded-xl font-bold hover:bg-gray-200"
                         >
                             Hủy bỏ

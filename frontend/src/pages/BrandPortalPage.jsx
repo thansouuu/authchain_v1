@@ -88,6 +88,34 @@ const BrandPortalPage = () => {
     fetchTimeoutProducts();
   }, [publicKey]);
 
+  // 👉 HÀM MỚI: TỪ CHỐI SẢN PHẨM OFF-CHAIN (CHỈ SỬA DATABASE)
+  const handleReject = async (e, product) => {
+    e.stopPropagation();
+    if (!publicKey) {
+      alert("Vui lòng kết nối ví Brand của bạn!");
+      return;
+    }
+
+    if (!window.confirm(`Bạn có chắc chắn muốn TỪ CHỐI bảo chứng cho sản phẩm: ${product.name}? Hành động này sẽ được ghi nhận vào hệ thống Off-chain.`)) {
+      return;
+    }
+
+    try {
+      const res = await axios.patch(`https://authchain-v1.onrender.com/api/products/${product.productId}/status`, {
+        status: 'rejected'
+      });
+
+      if (res.data.success) {
+        alert(`Đã từ chối sản phẩm: ${product.name}`);
+        // Xóa khỏi danh sách chờ duyệt trên UI
+        setPendingProducts((prev) => prev.filter(p => p.productId !== product.productId));
+      }
+    } catch (error) {
+      console.error("Lỗi khi từ chối sản phẩm:", error);
+      alert(`❌ Lỗi: ${error.response?.data?.message || error.message}`);
+    }
+  };
+
   const handleApprove = async (e, product) => {
     e.stopPropagation();
     if (!publicKey) {
@@ -201,7 +229,6 @@ const BrandPortalPage = () => {
     }
   };
 
-  // 👉 3. THÊM HÀM NÀY ĐỂ GỌI SMART CONTRACT
   const handleResolveTimeout = async (e, product) => {
     e.stopPropagation();
     if (!publicKey) {
@@ -325,12 +352,22 @@ const BrandPortalPage = () => {
                         {product.priceSol} SOL
                       </td>
                       <td className="px-6 py-5 text-right">
-                        <button 
-                          onClick={(e) => handleApprove(e, product)}
-                          className="bg-[#6366F1] hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 ml-auto shadow-md shadow-indigo-100 transition-all active:scale-95"
-                        >
-                          <CheckCircle className="w-4 h-4" /> Approve
-                        </button>
+                        {/* 👉 CẬP NHẬT GIAO DIỆN NÚT: Thêm nút Reject bên cạnh Approve */}
+                        <div className="flex gap-2 justify-end">
+                          <button 
+                            onClick={(e) => handleReject(e, product)}
+                            className="bg-white text-red-600 border border-red-200 hover:bg-red-50 px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-sm transition-all active:scale-95"
+                          >
+                            <XCircle className="w-4 h-4" /> Reject
+                          </button>
+                          
+                          <button 
+                            onClick={(e) => handleApprove(e, product)}
+                            className="bg-[#6366F1] hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-md shadow-indigo-100 transition-all active:scale-95"
+                          >
+                            <CheckCircle className="w-4 h-4" /> Approve
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

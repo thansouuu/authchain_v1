@@ -9,7 +9,7 @@ router.post('/',
     upload.array('images', 5), 
     productController.createProduct
 );
-// router.patch('/:productId/status', productController.updateProductStatus);
+router.patch('/:productId/status', productController.updateProductStatus);
 // router.patch('/:productId/transfer', productController.transferProduct);
 // router.post('/confirm-purchase',productController.confirmPurchase);
 module.exports = router;

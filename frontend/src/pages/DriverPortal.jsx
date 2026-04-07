@@ -51,7 +51,7 @@ const DriverPortal = () => {
             <div className="p-4 max-w-3xl mx-auto space-y-6">
                 
                 {/* --- 1. MỤC NHẬN SẢN PHẨM MỚI (Tái sử dụng Component) --- */}
-                <ReceiveParcelCard />
+                <ReceiveParcelCard myOrders={[]} />
 
                 {/* --- 2. MỤC GIAO HÀNG ĐI (Transfer Custody Global Button) --- */}
                 <TransferCustodyCard 

@@ -3,7 +3,8 @@ const Product = require('../models/Product');
 const mongoose = require('mongoose');
 const nacl = require('tweetnacl');
 const { PublicKey } = require('@solana/web3.js');
-const bs58 = require('bs58');
+// Đã gỡ bỏ require('bs58') vì không cần thiết nữa
+
 exports.authenticateUser = async (req, res) => {
     try {
         const { walletAddress } = req.body;
@@ -109,7 +110,10 @@ exports.processRoleRequest = async (req, res) => {
         // Xác minh chữ ký
         try {
             const message = new TextEncoder().encode(`admin_action_${action}_${walletAddress}`);
-            const signatureUint8 = bs58.decode(signature);
+            
+            // 👉 SỬA Ở ĐÂY: Ép thẳng mảng số từ Frontend thành Uint8Array
+            const signatureUint8 = new Uint8Array(signature);
+            
             const adminPubkeyUint8 = new PublicKey(adminAddress).toBytes();
 
             const isValid = nacl.sign.detached.verify(message, signatureUint8, adminPubkeyUint8);

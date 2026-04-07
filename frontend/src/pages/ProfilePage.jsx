@@ -166,7 +166,7 @@ export default function ProfilePage() {
                       <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wider">Tên Doanh Nghiệp</label>
                       <input 
                         type="text" 
-                        placeholder="VD: Kẹo Dừa Bến Tre Co."
+                        placeholder="VD: Thansouu..."
                         value={businessName}
                         onChange={(e) => setBusinessName(e.target.value)}
                         className="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-blue-500 outline-none transition-all"

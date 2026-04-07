@@ -29,7 +29,7 @@ Smart Contract được thiết kế với cơ chế giải phóng tài nguyên 
 
 ### 3. Quản lý trạng thái nghiêm ngặt (State Machine & RBAC)
 * **RBAC (Role-Based Access Control):** Hệ thống phân quyền động cho 5 đối tượng (Admin, Brand, Manufacturer, Driver, Client) với các Portal riêng biệt.
-* **State Machine Guard:** Trạng thái sản phẩm (Pending, In-Transit, Processed) được kiểm tra chéo ở cả Frontend (ẩn/hiện UI) và Backend/Contract, ngăn chặn các hành vi xác nhận vượt cấp hoặc sai quy trình.
+* **State Machine Guard:** Trạng thái sản phẩm (Pending, Approved, Rejected, Delivered, In-transit, Disputed, Purchased) được kiểm tra chéo ở cả Frontend (ẩn/hiện UI) và Backend/Contract, ngăn chặn các hành vi xác nhận vượt cấp hoặc sai quy trình.
 
 ### 4. Đồng bộ dữ liệu Hybrid (On-chain / Off-chain)
 Sử dụng MongoDB để lưu trữ metadata và thông tin user nhằm tăng tốc độ truy vấn (tránh tắc nghẽn RPC Solana), đồng thời duy trì tính toàn vẹn của logic nghiệp vụ cốt lõi trên Smart Contract.

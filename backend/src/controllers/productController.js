@@ -34,7 +34,7 @@ exports.createProduct = async (req, res) => {
             history: [{
                 status: 'pending',
                 title: 'Batch Initialized',
-                desc: `Sản phẩm được khởi tạo bởi nhà sản xuất.`,
+                desc: `Sản phẩm được khởi tạo bởi nhà sản xuất. ${req.body.manufacturerWallet}`,
                 txHash: txHash,
             }]
         });

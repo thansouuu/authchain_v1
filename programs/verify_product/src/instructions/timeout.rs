@@ -5,11 +5,11 @@ use crate::{
     events::*,
 };
 
-// const BRAND_TIMEOUT: i64 = 3 * 24 * 60 * 60;  
-// const CLIENT_TIMEOUT: i64 = 7 * 24 * 60 * 60; 
+const BRAND_TIMEOUT: i64 = 3 * 24 * 60 * 60;  
+const CLIENT_TIMEOUT: i64 = 7 * 24 * 60 * 60; 
 
-const BRAND_TIMEOUT: i64 = 1;  
-const CLIENT_TIMEOUT: i64 =1; 
+// const BRAND_TIMEOUT: i64 = 1;  
+// const CLIENT_TIMEOUT: i64 =1; 
 
 #[derive(Accounts)]
 pub struct ResolveTimeout<'info> {

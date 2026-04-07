@@ -12,22 +12,22 @@ export const checkTimeoutCondition = (batch) => {
 
     // 4. Case 1: Client ngâm hàng (3 ngày = 259200 giây)
     if (batch.status === 'in-transit' && batch.currentCustodian === batch.owner) {
-        // if (diffInSeconds >= 3 * 24 * 60 * 60) {
-        //     return 'client_timeout';
-        // }
-        if (diffInSeconds >= 1) {
+        if (diffInSeconds >= 3 * 24 * 60 * 60) {
             return 'client_timeout';
         }
+        // if (diffInSeconds >= 1) {
+        //     return 'client_timeout';
+        // }
     }
 
     // 5. Case 2: Brand ngâm đơn phán xử (7 ngày = 604800 giây)
     if (batch.status === 'disputed') {
-        // if (diffInSeconds >= 7 * 24 * 60 * 60) {
-        //     return 'brand_timeout';
-        // }
-        if (diffInSeconds >= 1) {
+        if (diffInSeconds >= 7 * 24 * 60 * 60) {
             return 'brand_timeout';
         }
+        // if (diffInSeconds >= 1) {
+        //     return 'brand_timeout';
+        // }
     }
 
     // Không vi phạm điều kiện nào

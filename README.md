@@ -44,7 +44,7 @@ Mô hình quy trách nhiệm trực tiếp vào lợi ích kinh tế của từn
 * **Nhà Sản Xuất (Manufacturer):** Phải khóa **10%** giá trị sản phẩm vào quỹ vận hành (Escrow). Trong đó, 5% trả công bảo chứng cho Brand, và 5% trả phí vận chuyển cho Shipper. Được hoàn phí Rent khi đóng Account.
 * **Thương hiệu Bảo chứng (Brand Owner):** Bắt buộc phải **Stake (thế chấp)** một lượng tiền bằng đúng giá trị đơn hàng. Nếu làm tốt nhiệm vụ xử lý khiếu nại, nhận lại tiền Stake + 5% hoa hồng.
 * **Người Vận Chuyển (Shipper):** Nhận 1% giá trị sản phẩm cho mỗi lần chuyển giao quyền sở hữu (custody) thành công tới trạm tiếp theo.
-* **Khách Hàng (Client):** Tiền mua hàng được **khóa trong Smart Contract (Escrow)**. Chỉ giải ngân cho nhà sản xuất khi nhận hàng thành công, tự động Refund 100% nếu có lỗi sự cố từ phía NSX hay  Brand.
+* **Khách Hàng (Client):** Tiền mua hàng được **khóa trong Smart Contract (Escrow)**. Chỉ giải ngân cho nhà sản xuất khi nhận hàng thành công, tự động Refund 100% nếu có lỗi sự cố từ phía NSX hay Brand.
 
 ### 2. Lý Thuyết Trò Chơi: Quy tắc "Kiềng 3 Chân" (Nash Equilibrium)
 Sức mạnh của AuthChain nằm ở sự cân bằng quyền lực tự nhiên:
@@ -80,6 +80,13 @@ Trong phiên bản Version 1 hiện tại, dự án vẫn còn một số điể
 2. **Lỗi xác thực chữ ký Admin:** Chức năng phê duyệt quyền (Role Approval) trên trang Admin thỉnh thoảng bị gián đoạn do lỗi mismatch định dạng decode chữ ký (Signature Format Error) khi truyền từ Frontend (Phantom Wallet) xuống Backend.
 3. **Bất đồng bộ trạng thái UI (State Sync Issue):** Đang thiếu cờ trạng thái xử lý logic cục bộ trên Database (MongoDB). Dẫn đến việc: Khi Brand phán xử thành công trên Blockchain, Frontend của Client/NSX chưa tự động ẩn nút "Report", và trang Brand vẫn hiển thị lại đơn hàng tranh chấp khi Reload trang. *(Lưu ý: Blockchain Core Logic vẫn an toàn tuyệt đối, Contract đã tự động block các giao dịch Replay Attack này, đây thuần túy là lỗi hiển thị UI).*
 4. **Chưa tương thích toàn diện thiết bị di động:** Giao diện chưa được Responsive hoàn toàn, một số bảng biểu (Data Tables) ở `Manufacturer Portal` và `Brand Portal` có thể bị tràn viền (overflow) trên màn hình điện thoại.
+
+---
+
+## 👨‍💻 Tác giả & Quá trình Phát triển (Author & Development)
+
+* **Tác giả:** Duy Hua (aka *Thansouu* / *bunhatv*)
+* **Phương pháp phát triển :** có sự ứng dụng của Vibe coding. 
 
 ---
 *Dự án được phát triển nhằm mục đích nghiên cứu ứng dụng Blockchain vào thực tiễn quản trị chuỗi cung ứng.*

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import ProductDetailModal from '../components/ProductDetailModal';
-import ReceiveParcelCard from '../components/ReceiveParcelCard'; // 👉 Import Component vừa tạo
+import ReceiveParcelCard from '../components/ReceiveParcelCard';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useConnection, useAnchorWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, SystemProgram } from '@solana/web3.js';
@@ -16,8 +16,10 @@ export default function ClientPortalPage() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const wallet = useAnchorWallet();
   const { connection } = useConnection();
-  const [isConfirming, setIsConfirming] = useState(false);
-  const [isReporting, setIsReporting] = useState(false);
+  
+  // 👉 SỬA Ở ĐÂY: Thay boolean bằng việc lưu lại Product ID đang được xử lý
+  const [processingConfirmId, setProcessingConfirmId] = useState(null);
+  const [processingReportId, setProcessingReportId] = useState(null);
 
   const getStatusBadgeStyles = (status) => {
     switch (status) {
@@ -61,7 +63,8 @@ export default function ClientPortalPage() {
     if (!window.confirm(`Bạn xác nhận đã nhận thành công đơn hàng ${order.productId}?`)) return;
 
     try {
-      setIsConfirming(true); 
+      // 👉 Ghi nhận ID đang xử lý
+      setProcessingConfirmId(order.productId); 
       
       const nsxPublicKey = new PublicKey(order.manufacturerWallet);
       const brandPublicKey = new PublicKey(order.brandWallet);
@@ -116,7 +119,8 @@ export default function ClientPortalPage() {
         alert(`Giao dịch thất bại: ${error.message}`);
       }
     } finally {
-      setIsConfirming(false); 
+      // 👉 Xóa ID khỏi trạng thái xử lý
+      setProcessingConfirmId(null); 
     }
   };
 
@@ -130,7 +134,8 @@ export default function ClientPortalPage() {
     if (!reason) return;
 
     try {
-      setIsReporting(true); 
+      // 👉 Ghi nhận ID đang xử lý
+      setProcessingReportId(order.productId); 
 
       const nsxPublicKey = new PublicKey(order.manufacturerWallet);
       const [productPda] = PublicKey.findProgramAddressSync(
@@ -181,7 +186,8 @@ export default function ClientPortalPage() {
         alert(`Lỗi hệ thống: ${error.message}`);
       }
     } finally {
-      setIsReporting(false); 
+      // 👉 Xóa ID khỏi trạng thái xử lý
+      setProcessingReportId(null); 
     }
   };
 
@@ -268,93 +274,102 @@ export default function ClientPortalPage() {
 
       {/* --- DANH SÁCH ĐƠN HÀNG --- */}
       <div className="space-y-6">
-        {orders.map((order) => (
-          <div key={order.productId} className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-            
-            {/* THÔNG TIN SẢN PHẨM CƠ BẢN */}
-            <div 
-              className="p-6 md:p-8 flex flex-col md:flex-row gap-6 relative cursor-pointer hover:bg-gray-50/50 transition-colors"
-              onClick={() => setSelectedProduct(order)}
-              title="Bấm để xem chi tiết và lịch sử di chuyển"
-            >
-              {/* Ảnh */}
-              <div className="w-24 h-24 md:w-32 md:h-32 flex-shrink-0">
-                <img src={order.images[0]} alt={order.name} className="w-full h-full object-cover rounded-2xl shadow-sm" />
-              </div>
+        {orders.map((order) => {
+          // 👉 Xác định xem ĐÚNG CÁI NÚT NÀY có đang được bấm không
+          const isThisConfirming = processingConfirmId === order.productId;
+          const isThisReporting = processingReportId === order.productId;
+          
+          // 👉 Disable toàn bộ các nút khác nếu đang có 1 giao dịch đang chạy
+          const isAnyActionRunning = processingConfirmId !== null || processingReportId !== null;
 
-              {/* Chi tiết */}
-              <div className="flex-grow">
-                <h2 className="text-xl font-bold text-gray-900 mb-1 pr-24">{order.name}</h2>
-                <p className="text-gray-500 text-sm mb-4 line-clamp-2">{order.description}</p>
-                
-                <div className="flex items-center gap-4">
-                  <span className="font-bold text-gray-900">{order.priceSol} SOL</span>
-                  <span className="text-gray-300">|</span>
-                  <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md uppercase tracking-wide">
-                    ID: {order.productId}
+          return (
+            <div key={order.productId} className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+              
+              {/* THÔNG TIN SẢN PHẨM CƠ BẢN */}
+              <div 
+                className="p-6 md:p-8 flex flex-col md:flex-row gap-6 relative cursor-pointer hover:bg-gray-50/50 transition-colors"
+                onClick={() => setSelectedProduct(order)}
+                title="Bấm để xem chi tiết và lịch sử di chuyển"
+              >
+                {/* Ảnh */}
+                <div className="w-24 h-24 md:w-32 md:h-32 flex-shrink-0">
+                  <img src={order.images[0]} alt={order.name} className="w-full h-full object-cover rounded-2xl shadow-sm" />
+                </div>
+
+                {/* Chi tiết */}
+                <div className="flex-grow">
+                  <h2 className="text-xl font-bold text-gray-900 mb-1 pr-24">{order.name}</h2>
+                  <p className="text-gray-500 text-sm mb-4 line-clamp-2">{order.description}</p>
+                  
+                  <div className="flex items-center gap-4">
+                    <span className="font-bold text-gray-900">{order.priceSol} SOL</span>
+                    <span className="text-gray-300">|</span>
+                    <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md uppercase tracking-wide">
+                      ID: {order.productId}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Status Badge (Góc phải trên) */}
+                <div className="absolute top-6 right-6 md:top-8 md:right-8">
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm border border-white/50 ${getStatusBadgeStyles(order.status)}`}>
+                    {formatStatusText(order.status)}
                   </span>
                 </div>
               </div>
 
-              {/* Status Badge (Góc phải trên) */}
-              <div className="absolute top-6 right-6 md:top-8 md:right-8">
-                <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm border border-white/50 ${getStatusBadgeStyles(order.status)}`}>
-                  {formatStatusText(order.status)}
-                </span>
-              </div>
-            </div>
+              {/* FOOTER ACTIONS (Chỉ hiện nếu đang In-Transit và người dùng là người giữ hàng hiện tại) */}
+              {order.status === 'in-transit' && order.currentCustodian === publicKey?.toBase58() && (
+                <>
+                  <div className="h-px bg-gray-100 mx-6 md:mx-8"></div>
+                  <div className="p-6 md:p-8 flex flex-col sm:flex-row gap-4 bg-gray-50/30">
+                    {/* Nút Xác nhận nhận hàng */}
+                    <button 
+                      onClick={() => handleConfirmReceipt(order)} 
+                      disabled={isAnyActionRunning} 
+                      className={`flex-1 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm ${
+                        isThisConfirming 
+                          ? 'bg-emerald-400 cursor-wait text-white' 
+                          : 'bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-50 disabled:cursor-not-allowed'
+                      }`}
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      {isThisConfirming ? 'Đang xác nhận...' : 'Confirm Receipt'}
+                    </button>
+                    
+                    {/* Nút Báo cáo sự cố */}
+                    <button 
+                      onClick={() => handleReportIssue(order)}
+                      disabled={isAnyActionRunning}
+                      className={`flex-1 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm ${
+                        isThisReporting
+                          ? 'bg-red-300 text-white cursor-wait border-none' 
+                          : 'bg-white border border-red-200 hover:bg-red-50 text-red-500 disabled:opacity-50 disabled:cursor-not-allowed' 
+                      }`}
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                      {isThisReporting ? 'Đang gửi...' : 'Report Issue'}
+                    </button>
+                  </div>
+                </>
+              )}
 
-            {/* FOOTER ACTIONS (Chỉ hiện nếu đang In-Transit và người dùng là người giữ hàng hiện tại) */}
-            {order.status === 'in-transit' && order.currentCustodian === publicKey?.toBase58() && (
-              <>
-                <div className="h-px bg-gray-100 mx-6 md:mx-8"></div>
-                <div className="p-6 md:p-8 flex flex-col sm:flex-row gap-4 bg-gray-50/30">
-                  {/* Nút Xác nhận nhận hàng */}
+              {/* FORCE CLAIM BUTTON */}
+              {order.status === 'disputed' && checkTimeoutCondition(order) === 'brand_timeout' && (
+                <div className="p-6 md:p-8 pt-0 border-t border-red-50 bg-red-50/30 rounded-b-[2rem]">
                   <button 
-                    onClick={() => handleConfirmReceipt(order)} 
-                    disabled={isConfirming} 
-                    className={`flex-1 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm ${
-                      isConfirming 
-                        ? 'bg-emerald-400 cursor-wait text-white' 
-                        : 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                    }`}
+                    onClick={() => handleResolveTimeout(order)}
+                    className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-md shadow-red-200 animate-pulse hover:animate-none mt-6"
                   >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    {isConfirming ? 'Đang xác nhận...' : 'Confirm Receipt'}
-                  </button>
-                  
-                  {/* Nút Báo cáo sự cố */}
-                  <button 
-                    onClick={() => handleReportIssue(order)}
-                    disabled={isReporting}
-                    className={`flex-1 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm ${
-                      isReporting
-                        ? 'bg-red-300 text-white cursor-wait border-none' 
-                        : 'bg-white border border-red-200 hover:bg-red-50 text-red-500' 
-                    }`}
-                  >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                    {isReporting ? 'Đang gửi...' : 'Report Issue'}
+                    <span className="text-xl">🚨</span>
+                    Force Claim (Brand Timeout) - Lấy lại tiền
                   </button>
                 </div>
-              </>
-            )}
+              )}
 
-            {/* FORCE CLAIM BUTTON */}
-            {order.status === 'disputed' && checkTimeoutCondition(order) === 'brand_timeout' && (
-              <div className="p-6 md:p-8 pt-0 border-t border-red-50 bg-red-50/30 rounded-b-[2rem]">
-                <button 
-                  onClick={() => handleResolveTimeout(order)}
-                  className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-md shadow-red-200 animate-pulse hover:animate-none mt-6"
-                >
-                  <span className="text-xl">🚨</span>
-                  Force Claim (Brand Timeout) - Lấy lại tiền
-                </button>
-              </div>
-            )}
-
-          </div>
-        ))}
+            </div>
+          );
+        })}
 
         {orders.length === 0 && (
           <div className="text-center py-16 bg-white rounded-[2rem] border border-dashed border-gray-200">

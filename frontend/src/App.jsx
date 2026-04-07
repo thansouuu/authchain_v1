@@ -12,7 +12,7 @@ import ClientPortalPage from './pages/ClientPortalPage';
 import BrandPortalPage from './pages/BrandPortalPage';
 import DriverPortal from './pages/DriverPortal';
 import AdminPortalPage from './pages/AdminPortalPage';
-
+import NotFoundPage from './pages/NotFoundPage';
 
 export default function App() {
   const endpoint = useMemo(() => clusterApiUrl('devnet'), []);
@@ -33,6 +33,7 @@ export default function App() {
                 <Route path="brand" element={<BrandPortalPage />} />
                 <Route path="driver" element={<DriverPortal />} />
                 <Route path="admin" element={<AdminPortalPage />} />
+                <Route path="*" element={<NotFoundPage />} />
               </Route>
             </Routes>
           </BrowserRouter>

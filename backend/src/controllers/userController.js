@@ -1,6 +1,9 @@
 const User = require('../models/User');
 const Product = require('../models/Product');
 const mongoose = require('mongoose');
+const nacl = require('tweetnacl');
+const { PublicKey } = require('@solana/web3.js');
+const bs58 = require('bs58');
 exports.authenticateUser = async (req, res) => {
     try {
         const { walletAddress } = req.body;
@@ -87,11 +90,37 @@ exports.getPendingRequests = async (req, res) => {
     }
 };
 
-// [PATCH] Admin phê duyệt hoặc từ chối đơn xin quyền
 exports.processRoleRequest = async (req, res) => {
     try {
         const { walletAddress } = req.params;
-        const { action } = req.body; // 'approve' hoặc 'reject'
+        const { action, adminAddress, signature } = req.body; // 'approve' hoặc 'reject'
+
+        // --- 1. BẢO MẬT: KIỂM TRA CHỮ KÝ WEB3 ---
+        const ADMIN_WALLET = process.env.ADMIN_WALLET || "GH85GXm9GTopqbAwTXyhuQgQzE2pS2JAwsyaqydfRfhn";
+        
+        if (!adminAddress || adminAddress !== ADMIN_WALLET) {
+            return res.status(403).json({ success: false, message: 'Từ chối truy cập: Bạn không phải Admin!' });
+        }
+
+        if (!signature) {
+             return res.status(400).json({ success: false, message: 'Yêu cầu chữ ký xác thực!' });
+        }
+
+        // Xác minh chữ ký
+        try {
+            const message = new TextEncoder().encode(`admin_action_${action}_${walletAddress}`);
+            const signatureUint8 = bs58.decode(signature);
+            const adminPubkeyUint8 = new PublicKey(adminAddress).toBytes();
+
+            const isValid = nacl.sign.detached.verify(message, signatureUint8, adminPubkeyUint8);
+            if (!isValid) {
+                return res.status(401).json({ success: false, message: "Chữ ký không hợp lệ hoặc bị giả mạo!" });
+            }
+        } catch (signError) {
+             console.error("Lỗi giải mã chữ ký:", signError);
+             return res.status(400).json({ success: false, message: "Định dạng chữ ký sai!" });
+        }
+        // --- KẾT THÚC BẢO MẬT ---
 
         const user = await User.findOne({ walletAddress });
         if (!user || user.roleRequest.status !== 'pending') {
@@ -165,6 +194,6 @@ exports.processRoleRequest = async (req, res) => {
         });
     } catch (error) {
         console.error('Lỗi xử lý đơn:', error);
-        res.status(500).json({ success: false, message: 'Lỗi server' });
+        res.status(500).json({ success: false, message: 'Lỗi server khi xử lý đơn.' });
     }
 };

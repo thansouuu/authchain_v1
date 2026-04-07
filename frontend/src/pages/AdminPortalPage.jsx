@@ -2,18 +2,19 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { ShieldAlert, CheckCircle, XCircle, UserCog, Loader2 } from 'lucide-react';
+import bs58 from 'bs58';
 
 const ADMIN_WALLET = "GH85GXm9GTopqbAwTXyhuQgQzE2pS2JAwsyaqydfRfhn";
 
 export default function AdminPortalPage() {
-    const { publicKey, connected } = useWallet();
+    // Lấy thêm hàm signMessage
+    const { publicKey, connected, signMessage } = useWallet();
     const [pendingRequests, setPendingRequests] = useState([]);
     const [loading, setLoading] = useState(false);
     const [processingId, setProcessingId] = useState(null);
 
     const isAdmin = publicKey?.toBase58() === ADMIN_WALLET;
 
-    // 1. Hàm lấy danh sách yêu cầu từ Backend
     const fetchRequests = async () => {
         if (!isAdmin) return;
         try {
@@ -33,35 +34,56 @@ export default function AdminPortalPage() {
         fetchRequests();
     }, [publicKey, isAdmin]);
 
-    // 2. HÀM XỬ LÝ DUYỆT/TỪ CHỐI (Đã thêm vào đây)
     const handleProcessRequest = async (walletAddress, action) => {
         const actionText = action === 'approve' ? 'PHÊ DUYỆT' : 'TỪ CHỐI';
         if (!window.confirm(`Bạn có chắc chắn muốn ${actionText} yêu cầu của ví này?`)) return;
 
         try {
-            setProcessingId(walletAddress); // Đặt trạng thái đang xử lý cho dòng này
+            setProcessingId(walletAddress);
             
-            // Gọi API PATCH đúng như bạn định nghĩa
+            // --- BƯỚC BẢO MẬT: YÊU CẦU KÝ TIN NHẮN ---
+            if (!signMessage) {
+                throw new Error("Ví của bạn không hỗ trợ tính năng ký xác thực!");
+            }
+            
+            // Thông báo trên UI để Admin chuẩn bị bấm ví
+            alert(`Vui lòng xác nhận chữ ký trên ví Phantom để ${actionText}.`);
+
+            const messageString = `admin_action_${action}_${walletAddress}`;
+            const messageEncoded = new TextEncoder().encode(messageString);
+            
+            // Hiện popup ví
+            const signatureBytes = await signMessage(messageEncoded);
+            const signatureBase58 = bs58.encode(signatureBytes);
+
+            // Gửi dữ liệu kèm chữ ký xuống Backend
             const res = await axios.patch(
                 `https://authchain-v1.onrender.com/api/users/${walletAddress}/process-request`, 
-                { action: action }
+                { 
+                    action: action,
+                    adminAddress: publicKey.toBase58(),
+                    signature: signatureBase58
+                }
             );
 
             alert(`✅ Thành công: ${res.data.message}`);
-
-            // Cập nhật lại danh sách UI ngay lập tức (xóa đơn đã xử lý)
             setPendingRequests(prev => prev.filter(req => req.walletAddress !== walletAddress));
 
         } catch (error) {
             console.error("Lỗi xử lý yêu cầu:", error);
-            const errorMsg = error.response?.data?.message || "Lỗi hệ thống, vui lòng thử lại.";
-            alert(`❌ Thất bại: ${errorMsg}`);
+            
+            // Bắt lỗi nếu người dùng bấm Cancel trên popup ví Phantom
+            if (error.message?.includes('User rejected')) {
+                alert("❌ Thất bại: Bạn đã hủy thao tác ký xác nhận.");
+            } else {
+                const errorMsg = error.response?.data?.message || error.message || "Lỗi hệ thống, vui lòng thử lại.";
+                alert(`❌ Thất bại: ${errorMsg}`);
+            }
         } finally {
             setProcessingId(null);
         }
     };
 
-    // --- Giao diện chờ kết nối ví ---
     if (!connected) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center">
@@ -71,7 +93,6 @@ export default function AdminPortalPage() {
         );
     }
 
-    // --- Giao diện từ chối truy cập (Sai ví) ---
     if (!isAdmin) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
